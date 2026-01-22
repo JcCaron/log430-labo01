@@ -1,7 +1,7 @@
-from daos.user_dao_mongo import UserDAO
+from daos.user_dao_mongo import UserMongoDAO
 from models.user import User
 
-dao = UserDAO()
+dao = UserMongoDAO()
 
 # commentaire jc: J'ai delete select all car comme on n'utilise pas de mock DB, 
 # ce test dépend des utilisateurs qui n'existe pas
@@ -34,7 +34,7 @@ def test_user_delete():
     assigned_id = dao.insert(user)
     dao.delete(assigned_id)
 
-    new_dao = UserDAO()
+    new_dao = UserMongoDAO()
     user_list = new_dao.select_all()
     ids = [u.id for u in user_list]
     assert user.id not in ids

@@ -9,7 +9,7 @@ from pymongo import MongoClient
 from models.user import User
 from bson import ObjectId
 
-class UserDAO:
+class UserMongoDAO:
     def __init__(self):
         try:
             env_path = ".env"
@@ -25,7 +25,7 @@ class UserDAO:
             if not all([db_host,db_port,db_user,db_pass,db_name]):
                 raise RuntimeError("Variables d'environnement MongoDB manquantes")
             
-            mongo_uri = f"mongodb://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
+            mongo_uri = f"mongodb://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}?authSource=admin"
             self.client = MongoClient(mongo_uri)
             self.db = self.client[db_name]
             self.collection = self.db["users"]

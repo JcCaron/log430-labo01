@@ -16,13 +16,16 @@ class ProductDAO:
             db_host = os.getenv("MYSQL_HOST")
             db_name = os.getenv("DB_NAME")
             db_user = os.getenv("DB_USERNAME")
-            db_pass = os.getenv("DB_PASSWORD")      
-            self.conn = mysql.connector.connect(host=db_host, user=db_user, password=db_pass, database=db_name)   
+            db_pass = os.getenv("DB_PASSWORD")    
+            self.conn = mysql.connector.connect(host=db_host, user=db_user, password=db_pass, database=db_name) 
             self.cursor = self.conn.cursor()
         except FileNotFoundError as e:
             print("Attention : Veuillez créer un fichier .env")
         except Exception as e:
             print("Erreur : " + str(e))
+            self.conn = None
+            self.cursor = None
+            raise
 
     def select_all(self):
         """ Select all products from MySQL """
@@ -47,7 +50,7 @@ class ProductDAO:
             SET name = %s, brand = %s, price = %s
             WHERE id= %s
             """,
-            (product.name, product.brand, product.price)
+            (product.name, product.brand, product.price, product.id)
         )
         self.conn.commit()
         return self.cursor.rowcount
