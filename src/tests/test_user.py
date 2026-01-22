@@ -1,7 +1,5 @@
 from daos.user_dao_mongo import UserDAO
 from models.user import User
-import pytest
-import time
 
 dao = UserDAO()
 

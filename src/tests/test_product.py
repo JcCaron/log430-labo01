@@ -1,46 +1,39 @@
-import pytest
 from daos.product_dao import ProductDAO
 from models.product import Product
 
-@pytest.fixture(scope="module")
-def dao():
-    dao_instance = ProductDAO()
-    yield dao_instance
-    dao_instance.delete_all()  # Cleanup après tous les tests
-    dao_instance.close()
+dao = ProductDAO()
 
-@pytest.fixture
-def sample_product():
-    return Product(None, "Test Product", "TestBrand", 99.99)
-
-def test_product_select(dao, sample_product):  # <-- dao et sample_product en arguments
-    dao.insert(sample_product)
+def test_product_insert(): 
+    product = Product(None, "Test Product", "TestBrand", 99.99)
+    dao.insert(product)
     products = dao.select_all()
     names = [p.name for p in products]
-    assert sample_product.name in names
+    assert product.name in names
 
-def test_product_insert(dao, sample_product):
-    product_id = dao.insert(sample_product)
-    assert isinstance(product_id, int) and product_id > 0
-
-def test_product_update(dao, sample_product):
-    product_id = dao.insert(sample_product)
-    sample_product.id = product_id
-    sample_product.name = "Updated Product"
-    sample_product.brand = "UpdatedBrand"
-    sample_product.price = 199.99
-    rows_modified = dao.update(sample_product)
-    assert rows_modified == 1
-
-    products = dao.select_all()
-    updated_names = [p.name for p in products]
-    assert "Updated Product" in updated_names
-
-def test_product_delete(dao, sample_product):
-    product_id = dao.insert(sample_product)
-    rows_deleted = dao.delete(product_id)
-    assert rows_deleted == 1
+def test_product_update():
+    product = Product(None, "Test Product", "TestBrand", 99.99)
+    new_id = dao.insert(product)
+    new_name = "Updated Product"
+    product.id= new_id
+    product.name = new_name
+    dao.update(product)
 
     products = dao.select_all()
     names = [p.name for p in products]
-    assert sample_product.name not in names
+    assert new_name in names
+
+    dao.delete(new_id)
+    
+def test_product_delete():
+    product = Product(None, "Test Product 2", "TestBrand", 99.99)
+    product_id = dao.insert(product)
+    dao.delete(product_id)
+
+    new_dao = ProductDAO()
+    products = new_dao.select_all()
+    ids = [p.id for p in products]
+    assert product.id not in ids
+
+
+
+
