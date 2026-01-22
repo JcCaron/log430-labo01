@@ -4,6 +4,8 @@ services:
     container_name: store_manager_cli
     volumes:
       - .:/app
+    env_file:
+      - ./.env
     depends_on:
       - mysql
       - mongo

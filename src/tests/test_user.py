@@ -1,12 +1,12 @@
-from daos.user_dao import UserDAO
+from daos.user_dao_mongo import UserDAO
 from models.user import User
+import pytest
 import time
 
 dao = UserDAO()
 
-def test_user_select():
-    user_list = dao.select_all()
-    assert len(user_list) >= 3
+# commentaire jc: J'ai delete select all car comme on n'utilise pas de mock DB, 
+# ce test dépend des utilisateurs qui n'existe pas
 
 def test_user_insert():
     user = User(None, 'Joanne Test', 'joannetest@example.com')
@@ -38,5 +38,5 @@ def test_user_delete():
 
     new_dao = UserDAO()
     user_list = new_dao.select_all()
-    emails = [u.email for u in user_list]
-    assert user.email not in emails
+    ids = [u.id for u in user_list]
+    assert user.id not in ids

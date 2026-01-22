@@ -6,18 +6,17 @@ Auteurs : Gabriel C. Ullmann, Fabio Petrillo, 2025
 import os
 from dotenv import load_dotenv
 import mysql.connector
-from models.user import User
+from models.product import Product
 
 class ProductDAO:
     def __init__(self):
         try:
             env_path = ".env"
-            print(os.path.abspath(env_path))
             load_dotenv(dotenv_path=env_path)
             db_host = os.getenv("MYSQL_HOST")
-            db_name = os.getenv("MYSQL_DB_NAME")
+            db_name = os.getenv("DB_NAME")
             db_user = os.getenv("DB_USERNAME")
-            db_pass = os.getenv("DB_PASSWORD")     
+            db_pass = os.getenv("DB_PASSWORD")      
             self.conn = mysql.connector.connect(host=db_host, user=db_user, password=db_pass, database=db_name)   
             self.cursor = self.conn.cursor()
         except FileNotFoundError as e:
@@ -27,23 +26,47 @@ class ProductDAO:
 
     def select_all(self):
         """ Select all products from MySQL """
-        pass
+        self.cursor.execute("SELECT id, name, brand, price FROM products")
+        rows = self.cursor.fetchall()
+        return [Product(*row) for row in rows]
 
     def insert(self, product):
-        """ Insert given product into MySQL """
-        pass
+        """ Insert given products into MySQL """
+        self.cursor.execute(
+            "INSERT INTO products (name, brand, price) VALUES (%s, %s, %s)",
+            (product.name, product.brand, product.price)
+        )
+        self.conn.commit()
+        return self.cursor.lastrowid
 
     def update(self, product):
         """ Update given product in MySQL """
-        pass
+        self.cursor.execute(
+            """
+            UPDATE products
+            SET name = %s, brand = %s, price = %s
+            WHERE id= %s
+            """,
+            (product.name, product.brand, product.price)
+        )
+        self.conn.commit()
+        return self.cursor.rowcount
 
     def delete(self, product_id):
         """ Delete product from MySQL with given product ID """
-        pass
+        self.cursor.execute(
+            "DELETE FROM products WHERE id= %s",
+            (product_id,)
+        )
+        self.conn.commit()
+        return self.cursor.rowcount
+
 
     def delete_all(self): #optional
         """ Empty products table in MySQL """
-        pass
+        self.cursor.execute("DELETE FROM products")
+        self.conn.commit()
+        return self.cursor.rowcount
         
     def close(self):
         self.cursor.close()

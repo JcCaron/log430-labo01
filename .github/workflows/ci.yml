@@ -4,19 +4,20 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest,self-hosted]
 
     steps:
       - name: Checkout dépot
         uses: actions/checkout@v4
 
-      - name: Créer fichier .env (TODO - utilisez les secrets)
+      - name: Créer fichier .env
         run: |
-          echo "MYSQL_HOST=mysql" >> .env
-          echo "MONGODB_HOST=mongo" >> .env
-          echo "MYSQL_DB_NAME=labo01_db" >> .env
-          echo "DB_USERNAME=labo01" >> .env
-          echo "DB_PASSWORD=labo01" >> .env
+          echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
+          echo "MONGODB_HOST=${{ secrets.MONGODB_HOST }}" >> .env
+          echo "MONGODB_PORT=${{ secrets.MONGODB_PORT }}" >> .env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
 
       - name: Démarrer le conteneur
         run: |
@@ -38,9 +39,23 @@ jobs:
           done
           sleep 5
 
-      - name: Éxécuter les tests (TODO - ajouter test_products)
-        run: docker exec store_manager_cli pytest ./src/tests/test_user.py
+      - name: Attendre MongoDB
+        run: |
+          timeout=60
+          until docker exec mongo mongosh --eval "db.runCommand({ ping: 1 })" >/dev/null 2>&1; do
+            echo "Waiting for MongoDB..."
+            sleep 3
+            timeout=$((timeout - 3))
+            if [ $timeout -le 0 ]; then
+              echo "MongoDB failed to start"
+              exit 1
+            fi
+          done
+          echo "MongoDB is ready"
 
+      - name: Éxécuter les tests
+        run: docker exec store_manager_cli pytest
+      
       - name: Cleanup
         if: always()
         run: docker compose down -v
